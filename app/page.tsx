@@ -474,7 +474,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="mt-12 py-6 text-center text-gray-400">
         <p className="flex items-center justify-center gap-4">
-          Developed by VAD from Let's_Vibecode
+          Developed by VAD from Lets_Vibecode
           <a
             href="https://www.instagram.com/lets_vibecode?igsh=MXV0MzVjaWxpNGx0NA=="
             target="_blank"

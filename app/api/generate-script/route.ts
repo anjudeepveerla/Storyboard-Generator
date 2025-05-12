@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-const OPENROUTER_API_KEY = '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';
+// Using the new API key
+const API_KEY = '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';
 
 export async function POST(req: Request) {
   try {
@@ -16,13 +17,13 @@ export async function POST(req: Request) {
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+        'Authorization': `Bearer ${API_KEY}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'http://localhost:3000',
+        'HTTP-Referer': 'http://localhost:3001',
         'X-Title': 'Script Generation App'
       },
       body: JSON.stringify({
-        model: "mistralai/mistral-7b-instruct",
+        model: "openai/gpt-3.5-turbo",
         messages: [
           {
             role: "system",
@@ -34,10 +35,8 @@ export async function POST(req: Request) {
           }
         ],
         temperature: 0.7,
-        max_tokens: 500,
-        top_p: 0.8,
-        frequency_penalty: 0,
-        presence_penalty: 0,
+        max_tokens: 300,
+        top_p: 1,
         stream: false
       })
     });

@@ -21,134 +21,13 @@ const aspectRatioOptions: AspectRatioOption[] = [
 ];
 
 export default function Home() {
-  const [scriptPrompt, setScriptPrompt] = useState('');
   const [script, setScript] = useState('');
   const [imageCount, setImageCount] = useState(3);
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>('16:9');
   const [loading, setLoading] = useState(false);
-  const [generatingScript, setGeneratingScript] = useState(false);
   const [images, setImages] = useState<{ url: string, caption: string }[]>([]);
   const [error, setError] = useState('');
   const [selectedImage, setSelectedImage] = useState<{ url: string, caption: string } | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-  const [utterance, setUtterance] = useState<SpeechSynthesisUtterance | null>(null);
-
-  // Cleanup function for speech synthesis
-  useEffect(() => {
-    return () => {
-      if (utterance) {
-        window.speechSynthesis.cancel();
-      }
-    };
-  }, [utterance]);
-
-  const speakText = (text: string) => {
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "en-US";
-    window.speechSynthesis.speak(utterance);
-  };
-
-  // Format script based on whether it should be bullet points
-  const formatScript = (lines: string[]) => {
-    const isBulletPoints = scriptPrompt.toLowerCase().includes('give in points') || 
-                          lines.some(line => line.trim().startsWith('•') || 
-                                           line.trim().startsWith('-') || 
-                                           line.trim().startsWith('*'));
-
-    if (isBulletPoints) {
-      return lines.map(line => line.trim().replace(/^[•\-*]\s*/, '• ')); // Standardize bullet points
-    } else {
-      // Join lines with proper spacing and punctuation for narrative flow
-      return [lines.map(line => line.trim()).join('. ')];
-    }
-  };
-
-  const speakFullScript = (scriptLines: string[]) => {
-    const formattedLines = formatScript(scriptLines);
-    const fullText = formattedLines.join('. ');
-
-    const newUtterance = new SpeechSynthesisUtterance(fullText);
-    newUtterance.lang = "en-US";
-    newUtterance.rate = 0.9; // Slightly slower for better clarity
-    
-    // Add event listeners
-    newUtterance.onstart = () => {
-      setIsPlaying(true);
-      setIsPaused(false);
-    };
-    
-    newUtterance.onpause = () => {
-      setIsPaused(true);
-    };
-    
-    newUtterance.onresume = () => {
-      setIsPaused(false);
-    };
-    
-    newUtterance.onend = () => {
-      setIsPlaying(false);
-      setIsPaused(false);
-    };
-    
-    newUtterance.onerror = () => {
-      setIsPlaying(false);
-      setIsPaused(false);
-    };
-
-    setUtterance(newUtterance);
-    window.speechSynthesis.speak(newUtterance);
-  };
-
-  const pauseSpeech = () => {
-    if (utterance) {
-      window.speechSynthesis.pause();
-    }
-  };
-
-  const resumeSpeech = () => {
-    if (utterance) {
-      window.speechSynthesis.resume();
-    }
-  };
-
-  const stopSpeech = () => {
-    if (utterance) {
-      window.speechSynthesis.cancel();
-      setIsPlaying(false);
-      setIsPaused(false);
-    }
-  };
-
-  const generateScriptFromIdea = async () => {
-    if (!scriptPrompt.trim()) {
-      setError('Please enter an idea first.');
-      return;
-    }
-
-    setGeneratingScript(true);
-    setError('');
-
-    try {
-      const response = await fetch('/api/generate-script', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: scriptPrompt }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate script');
-      }
-
-      setScript(data.script);
-    } catch (err: any) {
-      setError(err.message || 'Failed to generate script');
-    } finally {
-      setGeneratingScript(false);
-    }
-  };
 
   const handleGenerate = async () => {
     if (!script.trim()) {
@@ -208,14 +87,6 @@ export default function Home() {
     </div>
   );
 
-  // Split script into lines and filter out empty lines
-  const scriptLines = script.split('\n').filter(line => line.trim());
-  const formattedScriptLines = formatScript(scriptLines);
-  const isBulletPoints = scriptPrompt.toLowerCase().includes('give in points') || 
-                        scriptLines.some(line => line.trim().startsWith('•') || 
-                                               line.trim().startsWith('-') || 
-                                               line.trim().startsWith('*'));
-
   return (
     <div className="min-h-screen bg-black text-white p-4 sm:p-8 flex flex-col">
       <div className="max-w-6xl mx-auto flex-grow">
@@ -231,99 +102,12 @@ export default function Home() {
 
         {/* Main Content */}
         <main className="space-y-8">
-          {/* Script Generation Section */}
-          <div className="w-full mb-4">
-            <label className="block text-lg font-semibold mb-2 text-gray-300">
-              Generate a Script from an Idea
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={scriptPrompt}
-                onChange={(e) => setScriptPrompt(e.target.value)}
-                placeholder="Enter your idea (e.g., a city on Mars)..."
-                className="flex-1 p-3 bg-gray-900 border-2 border-blue-500/30 rounded-lg
-                         text-white placeholder-gray-500 focus:outline-none focus:border-blue-500
-                         transition-all duration-300"
-              />
-              <button
-                onClick={generateScriptFromIdea}
-                disabled={generatingScript || !scriptPrompt.trim()}
-                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg
-                         text-white font-semibold transform transition-all duration-300
-                         hover:scale-105 hover:shadow-lg hover:shadow-blue-500/50
-                         disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
-                         disabled:hover:shadow-none"
-              >
-                {generatingScript ? 'Generating...' : '✨ Generate Script'}
-              </button>
-            </div>
-          </div>
-
-          {/* Script Display Section */}
-          {scriptLines.length > 0 && (
-            <div className="bg-gray-900 rounded-lg p-6 border-2 border-blue-500/30">
-              <div className="flex flex-col space-y-4">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-xl font-semibold text-blue-400">Generated Script</h2>
-                  {!isPlaying && !isPaused && (
-                    <button
-                      onClick={() => speakFullScript(scriptLines)}
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-500/20 text-blue-400 rounded-lg
-                               hover:bg-blue-500/30 transition-colors duration-300 text-sm"
-                    >
-                      🔊 Listen to Story
-                    </button>
-                  )}
-                </div>
-
-                <div className={`prose prose-invert max-w-none ${isBulletPoints ? 'space-y-2' : ''}`}>
-                  {formattedScriptLines.map((line, index) => (
-                    <p key={index} className={`text-gray-300 ${isBulletPoints ? 'ml-4' : ''}`}>
-                      {line}
-                    </p>
-                  ))}
-                </div>
-
-                {(isPlaying || isPaused) && (
-                  <div className="flex items-center justify-center gap-3 mt-4 border-t border-blue-500/20 pt-4">
-                    {isPlaying && !isPaused && (
-                      <button
-                        onClick={pauseSpeech}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-blue-500/20 text-blue-400 rounded-lg
-                                 hover:bg-blue-500/30 transition-colors duration-300 text-sm"
-                      >
-                        ⏸️ Pause
-                      </button>
-                    )}
-                    {isPaused && (
-                      <button
-                        onClick={resumeSpeech}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-blue-500/20 text-blue-400 rounded-lg
-                                 hover:bg-blue-500/30 transition-colors duration-300 text-sm"
-                      >
-                        ▶️ Resume
-                      </button>
-                    )}
-                    <button
-                      onClick={stopSpeech}
-                      className="flex items-center gap-1 px-3 py-1.5 bg-red-500/20 text-red-400 rounded-lg
-                               hover:bg-red-500/30 transition-colors duration-300 text-sm"
-                    >
-                      ⏹️ Stop
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
           {/* Input Section */}
           <div className="relative">
             <textarea
               value={script}
               onChange={(e) => setScript(e.target.value)}
-              placeholder="Paste your script here..."
+              placeholder="Paste your script here... (Use bullet points for each scene)"
               className="w-full h-64 p-4 bg-gray-900 border-2 border-blue-500/30 rounded-lg 
                        text-white placeholder-gray-500 focus:outline-none focus:border-blue-500
                        transition-all duration-300 font-mono text-sm sm:text-base

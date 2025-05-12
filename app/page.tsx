@@ -474,17 +474,9 @@ export default function Home() {
       {/* Footer */}
       <footer className="mt-12 py-6 text-center text-gray-400">
         <p className="flex items-center justify-center gap-4">
-          Developed by Team Lumi AI
+          Developed by VAD from Let's_Vibecode
           <a
-            href="https://www.youtube.com/@lumi.ai_"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-red-400 hover:text-red-300 transition-colors duration-300 flex items-center gap-1"
-          >
-            <span>📺</span> YouTube
-          </a>
-          <a
-            href="https://www.instagram.com/lumi.ai_/"
+            href="https://www.instagram.com/lets_vibecode?igsh=MXV0MzVjaWxpNGx0NA=="
             target="_blank"
             rel="noopener noreferrer"
             className="text-pink-400 hover:text-pink-300 transition-colors duration-300 flex items-center gap-1"

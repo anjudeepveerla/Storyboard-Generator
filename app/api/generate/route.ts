@@ -47,7 +47,7 @@ export async function POST(req: Request) {
       );
 
       if (!response.ok) {
-        const errorData = await response.json();
+        const errorData = await response.json().catch(() => ({}));
         console.error('Pexels API error:', errorData);
         throw new Error('Failed to fetch image from Pexels');
       }

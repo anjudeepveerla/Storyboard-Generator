@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-// Using the new API key
+// Using the API key
 const API_KEY = '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';
 
 export async function POST(req: Request) {
@@ -19,7 +19,7 @@ export async function POST(req: Request) {
       headers: {
         'Authorization': `Bearer ${API_KEY}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'http://localhost:3001',
+        'HTTP-Referer': process.env.VERCEL_URL || 'http://localhost:3000',
         'X-Title': 'Script Generation App'
       },
       body: JSON.stringify({
